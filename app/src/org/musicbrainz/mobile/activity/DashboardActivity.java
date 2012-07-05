@@ -20,9 +20,12 @@
 
 package org.musicbrainz.mobile.activity;
 
+import java.util.ArrayList;
+
 import org.musicbrainz.android.api.webservice.HttpClient;
 import org.musicbrainz.mobile.MusicBrainzApplication;
 import org.musicbrainz.mobile.R;
+import org.musicbrainz.mobile.fragment.SearchFragment;
 import org.musicbrainz.mobile.fragment.WelcomeFragment;
 import org.musicbrainz.mobile.intent.IntentFactory;
 import org.musicbrainz.mobile.intent.IntentFactory.Extra;
@@ -31,10 +34,19 @@ import org.musicbrainz.mobile.intent.zxing.IntentResult;
 import org.musicbrainz.mobile.util.PreferenceUtils;
 import org.musicbrainz.mobile.view.DashTileView;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
+import android.support.v4.app.FragmentManager;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import com.actionbarsherlock.view.Menu;
@@ -129,7 +141,7 @@ public class DashboardActivity extends MusicBrainzActivity implements OnClickLis
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {    	
         if (requestCode == IntentIntegrator.BARCODE_REQUEST) {
             IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
             if (scanResult.getContents() != null) {
@@ -139,7 +151,34 @@ public class DashboardActivity extends MusicBrainzActivity implements OnClickLis
             }
         } else if (requestCode == COLLECTION_LOGIN_REQUEST && isUserLoggedIn()) {
             startActivity(IntentFactory.getCollectionList(getApplicationContext()));
-        }
-    }
+        } else if (intent != null) {	
+     		if (resultCode == Activity.RESULT_OK) {			
+     			ArrayList<String> matches = intent
+     					.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);     			
+     			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+     			builder.setTitle("Did you say?");
+     			final ListView modeList = new ListView(this);
+     			String[] arrayMatches = matches.toArray(new String[matches.size()]);
+     			ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+     					this, R.layout.activity_voicetotexts, R.id.voicetotexts_item, arrayMatches);
+     			modeList.setAdapter(adapter);     			
+     			builder.setView(modeList);
+     			final Dialog dialog = builder.create();     			
+     			modeList.setOnItemClickListener(new OnItemClickListener() {
+					@Override
+					public void onItemClick(AdapterView<?> parent, View view, int position, long id) {						
+						String selectedFromList = (String) (modeList.getItemAtPosition(position));
+						dialog.dismiss();						
+						if (selectedFromList!= null) {
+							FragmentManager fm = getSupportFragmentManager();
+		         	        SearchFragment sf = (SearchFragment) fm.findFragmentById(R.id.search_fragment);
+		         	        sf.setSearchField(selectedFromList);
+						}
+					}
+				});     			
 
+     			dialog.show(); 			
+     		}
+        }        
+    }
 }
