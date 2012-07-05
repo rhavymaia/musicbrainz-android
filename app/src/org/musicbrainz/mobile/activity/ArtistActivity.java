@@ -22,6 +22,7 @@ package org.musicbrainz.mobile.activity;
 
 import java.util.LinkedList;
 
+import org.musicbrainz.android.api.aws.ArtistLinksHandler;
 import org.musicbrainz.android.api.data.Artist;
 import org.musicbrainz.android.api.data.ReleaseGroupStub;
 import org.musicbrainz.android.api.data.Tag;
@@ -111,7 +112,7 @@ public class ArtistActivity extends MusicBrainzActivity implements LoaderCallbac
         artistText.setText(artist.getName());
         releaseList.setAdapter(new ArtistRGAdapter(this, artist.getReleaseGroups()));
         releaseList.setOnItemClickListener(this);
-        linksList.setAdapter(new WeblinkAdapter(this, artist.getLinks()));
+        linksList.setAdapter(new WeblinkAdapter(this, ArtistLinksHandler.getArtistLinks(artist)));
         linksList.setOnItemClickListener(this);
         rating.setRating(artist.getRating());
         tags.setText(StringFormat.commaSeparateTags(artist.getTags(), this));

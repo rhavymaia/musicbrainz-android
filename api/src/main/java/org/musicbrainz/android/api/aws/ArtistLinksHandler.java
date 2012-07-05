@@ -23,8 +23,7 @@ public class ArtistLinksHandler {
 		
 		WebLink link = new WebLink();
 		link.setType("Amazon");
-		link.setUrl(searchUrl);
-		
+		link.setUrl(searchUrl);		
 		return link;
 	}
 }
