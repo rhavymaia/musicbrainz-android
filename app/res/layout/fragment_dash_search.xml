@@ -44,4 +44,12 @@
     android:layout_below="@+id/search_spin"
     android:layout_toLeftOf="@+id/search_btn"
     android:hint="@string/search_hint" />
+  
+   <Button
+        android:id="@+id/speak_btn"
+        android:layout_below="@+id/query_input"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/speak_btn">       
+   </Button>
 </RelativeLayout>
