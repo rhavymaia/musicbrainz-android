@@ -20,15 +20,23 @@
 
 package org.musicbrainz.mobile.fragment;
 
+import java.util.List;
+
 import org.musicbrainz.mobile.R;
 import org.musicbrainz.mobile.activity.SearchActivity;
 import org.musicbrainz.mobile.intent.IntentFactory.Extra;
+import org.musicbrainz.mobile.intent.zxing.IntentIntegrator;
 import org.musicbrainz.mobile.suggestion.SuggestionHelper;
 import org.musicbrainz.mobile.util.PreferenceUtils;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,27 +48,66 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
-public class SearchFragment extends ContextFragment implements OnEditorActionListener, OnItemClickListener,
-        OnClickListener {
+public class SearchFragment extends ContextFragment implements
+		OnEditorActionListener, OnItemClickListener, OnClickListener {
 
     private AutoCompleteTextView searchField;
     private Spinner searchTypeSpinner;
     private SuggestionHelper suggestionHelper;
-
+    
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View layout = inflater.inflate(R.layout.fragment_dash_search, container);
-        searchTypeSpinner = (Spinner) layout.findViewById(R.id.search_spin);
-        searchField = (AutoCompleteTextView) layout.findViewById(R.id.query_input);
-        searchField.setOnEditorActionListener(this);
-        layout.findViewById(R.id.search_btn).setOnClickListener(this);
-        return layout;
-    }
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		View layout = inflater
+				.inflate(R.layout.fragment_dash_search, container);
+		searchTypeSpinner = (Spinner) layout.findViewById(R.id.search_spin);
+		searchField = (AutoCompleteTextView) layout
+				.findViewById(R.id.query_input);
+		searchField.setOnEditorActionListener(this);
+		layout.findViewById(R.id.search_btn).setOnClickListener(this);
+		
+		// Disable button if no recognition service is present
+		Button speakButton = (Button) layout
+				.findViewById(R.id.speak_btn);
+		Activity activity = getActivity();
+		PackageManager pm = activity.getPackageManager();
+		List<ResolveInfo> activities = pm.queryIntentActivities(new Intent(
+				RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0);
+
+		if (activities.size() == 0) {
+			speakButton.setEnabled(false);
+		} else {
+			speakButton.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {					
+					startVoiceRecognitionActivity();
+				}
+			});
+		}
+
+		return layout;
+	}
+
+ 	/**
+ 	 * Fire an intent to start the voice recognition activity.
+ 	 */
+ 	private void startVoiceRecognitionActivity() { 		
+ 		Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH); 		
+ 		intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+ 				RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+ 		intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
+ 				"Voice recognition");
+ 		intent.putExtra("requestCode", 
+ 				IntentIntegrator.RECOGNIZE_SPEECH_REQUEST);
+ 		this.startActivityForResult(intent, 
+ 				IntentIntegrator.RECOGNIZE_SPEECH_REQUEST);
+ 	}
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -140,5 +187,8 @@ public class SearchFragment extends ContextFragment implements OnEditorActionLis
             return Extra.ALL;
         }
     }
-
+    
+    public void setSearchField(String value) {
+    	this.searchField.setText(value);
+    }
 }

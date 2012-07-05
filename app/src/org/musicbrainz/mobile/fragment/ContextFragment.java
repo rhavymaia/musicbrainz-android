@@ -22,6 +22,7 @@ package org.musicbrainz.mobile.fragment;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.support.v4.app.Fragment;
 
 public class ContextFragment extends Fragment {
@@ -32,6 +33,13 @@ public class ContextFragment extends Fragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         context = activity.getApplicationContext();
-    }
+    }   
     
+    @Override
+    public void startActivityForResult(Intent intent, int requestCode) {
+        if (requestCode != -1 && (requestCode&0xffff0000) != 0) {
+            throw new IllegalArgumentException("Can only use lower 16 bits for requestCode");
+        }
+        super.startActivityForResult(intent, requestCode);
+    } 
 }
